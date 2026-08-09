@@ -35,7 +35,7 @@ export default function Home() {
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
     setSending(false);
-    if (signInError) setError("No se pudo enviar el enlace. Inténtalo otra vez.");
+    if (signInError) setError(`No se pudo enviar el enlace: ${signInError.message}`);
     else setSent(true);
   }
 
