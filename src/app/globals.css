@@ -6,3 +6,8 @@ body { background: #fafafa; color: #27272a; font-family: Arial, Helvetica, sans-
 button, input { font: inherit; }
 
 .excalidraw { --color-primary: #52525b; --color-primary-darker: #3f3f46; --color-primary-light: #e4e4e7; }
+
+/* Oculta los enlaces promocionales del menú original de Excalidraw. */
+.excalidraw .dropdown-menu-item-divider:has(+ .dropdown-menu-group:has(> .dropdown-menu-group-title)),
+.excalidraw .dropdown-menu-group:has(> .dropdown-menu-group-title),
+.excalidraw .dropdown-menu-group:has(> .dropdown-menu-group-title) + .dropdown-menu-item-divider { display: none; }
