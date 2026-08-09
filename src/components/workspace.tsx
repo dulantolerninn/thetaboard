@@ -80,6 +80,8 @@ export function Workspace() {
 
   if (loading && !project) return <main className="grid min-h-screen place-items-center"><LoaderCircle className="animate-spin text-zinc-600" /></main>;
 
+  if (board) return <BoardCanvas key={board.id} board={board} onBack={() => setBoard(null)} />;
+
   return (
     <main className="min-h-screen bg-[#fafafa] text-zinc-800">
       <header className="flex h-16 items-center justify-between border-b border-zinc-200 bg-white px-5">
@@ -91,10 +93,10 @@ export function Workspace() {
           {sidebarOpen && <aside className="w-72 shrink-0 border-r border-zinc-200 bg-white p-4">
             <button onClick={() => { setProject(null); setBoard(null); }} className="mb-6 flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-800"><ChevronLeft size={16} /> Proyectos</button>
             <div className="mb-4 flex items-start justify-between gap-3"><h1 className="font-semibold leading-5 tracking-[0.02em]">{project.name}</h1><button onClick={() => setCreating("board")} aria-label="Crear pizarra" className="rounded-lg p-1.5 text-zinc-600 hover:bg-zinc-100"><Plus size={19} /></button></div>
-            <div className="space-y-1">{boards.map((item) => <button key={item.id} onClick={() => setBoard(item)} className={`group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm ${board?.id === item.id ? "bg-zinc-200 text-zinc-900" : "text-zinc-600 hover:bg-zinc-100"}`}><PanelLeftClose size={15} /><span className="min-w-0 flex-1 truncate">{item.title}</span><span onClick={(event) => removeBoard(event, item.id)} className="hidden rounded p-1 text-zinc-400 hover:bg-zinc-200 hover:text-zinc-800 group-hover:block"><Trash2 size={14} /></span></button>)}</div>
+            <div className="space-y-1">{boards.map((item) => <button key={item.id} onClick={() => setBoard(item)} className="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-zinc-600 hover:bg-zinc-100"><PanelLeftClose size={15} /><span className="min-w-0 flex-1 truncate">{item.title}</span><span onClick={(event) => removeBoard(event, item.id)} className="hidden rounded p-1 text-zinc-400 hover:bg-zinc-200 hover:text-zinc-800 group-hover:block"><Trash2 size={14} /></span></button>)}</div>
             {!boards.length && <p className="mt-8 text-center text-sm leading-5 text-zinc-400">Crea tu primera pizarra para empezar a pensar visualmente.</p>}
           </aside>}
-          <section className="min-w-0 flex-1">{board ? <BoardCanvas key={board.id} board={board} /> : <EmptyBoard onCreate={() => setCreating("board")} />}</section>
+          <section className="min-w-0 flex-1"><EmptyBoard onCreate={() => setCreating("board")} /></section>
         </section>
       )}
       {creating && <CreateModal kind={creating} name={name} setName={setName} onClose={() => setCreating(null)} onSubmit={createItem} />}
