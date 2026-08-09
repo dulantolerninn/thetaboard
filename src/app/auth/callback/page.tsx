@@ -11,5 +11,5 @@ export default function AuthCallbackPage() {
     createClient().auth.exchangeCodeForSession(code).finally(() => window.location.replace("/"));
   }, []);
 
-  return <main className="grid min-h-screen place-items-center"><LoaderCircle className="animate-spin text-indigo-600" /></main>;
+  return <main className="grid min-h-screen place-items-center"><LoaderCircle className="animate-spin text-zinc-600" /></main>;
 }
