@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { ChevronLeft, FilePlus2, FolderKanban, KeyRound, LayoutDashboard, LoaderCircle, LogOut, PanelLeftClose, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, FilePlus2, FolderKanban, LayoutDashboard, LoaderCircle, LogOut, PanelLeftClose, PanelLeftOpen, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { BoardCanvas } from "@/components/board-canvas";
 
@@ -17,7 +17,7 @@ export function Workspace() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState<"project" | "board" | null>(null);
   const [name, setName] = useState("");
-  const [settingPassword, setSettingPassword] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => { void loadProjects(); }, []);
 
@@ -60,22 +60,21 @@ export function Workspace() {
   return (
     <main className="min-h-screen bg-[#fafafa] text-slate-900">
       <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-5">
-        <button onClick={() => { setProject(null); setBoard(null); }} className="flex items-center gap-2 font-semibold tracking-tight"><span className="grid size-8 place-items-center rounded-lg bg-indigo-600 text-sm text-white">T</span> THETA BOARD</button>
-        <div className="flex items-center gap-1"><button onClick={() => setSettingPassword(true)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-100"><KeyRound size={16} /> Contraseña</button><button onClick={() => supabase.auth.signOut().then(() => window.location.reload())} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-100"><LogOut size={16} /> Salir</button></div>
+        <div className="flex items-center gap-2"><button onClick={() => { setProject(null); setBoard(null); }} className="flex items-center gap-2 font-semibold tracking-tight"><span className="grid size-8 place-items-center rounded-lg bg-indigo-600 text-sm text-white">T</span> THETA BOARD</button>{project && <button onClick={() => setSidebarOpen((isOpen) => !isOpen)} aria-label={sidebarOpen ? "Ocultar panel de pizarras" : "Mostrar panel de pizarras"} className="ml-2 rounded-lg p-2 text-slate-500 hover:bg-slate-100">{sidebarOpen ? <PanelLeftClose size={19} /> : <PanelLeftOpen size={19} />}</button>}</div>
+        <button onClick={() => supabase.auth.signOut().then(() => window.location.reload())} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-100"><LogOut size={16} /> Salir</button>
       </header>
       {!project ? <ProjectsView projects={projects} onOpen={selectProject} onNew={() => setCreating("project")} /> : (
         <section className="flex min-h-[calc(100vh-4rem)]">
-          <aside className="w-72 shrink-0 border-r border-slate-200 bg-white p-4">
+          {sidebarOpen && <aside className="w-72 shrink-0 border-r border-slate-200 bg-white p-4">
             <button onClick={() => { setProject(null); setBoard(null); }} className="mb-6 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900"><ChevronLeft size={16} /> Proyectos</button>
             <div className="mb-4 flex items-start justify-between gap-3"><h1 className="font-semibold leading-5">{project.name}</h1><button onClick={() => setCreating("board")} aria-label="Crear pizarra" className="rounded-lg p-1.5 text-indigo-600 hover:bg-indigo-50"><Plus size={19} /></button></div>
             <div className="space-y-1">{boards.map((item) => <button key={item.id} onClick={() => setBoard(item)} className={`group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm ${board?.id === item.id ? "bg-indigo-50 text-indigo-900" : "text-slate-600 hover:bg-slate-50"}`}><PanelLeftClose size={15} /><span className="min-w-0 flex-1 truncate">{item.title}</span><span onClick={(event) => removeBoard(event, item.id)} className="hidden rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 group-hover:block"><Trash2 size={14} /></span></button>)}</div>
             {!boards.length && <p className="mt-8 text-center text-sm leading-5 text-slate-400">Crea tu primera pizarra para empezar a pensar visualmente.</p>}
-          </aside>
-          <section className="min-w-0 flex-1">{board ? <BoardCanvas board={board} /> : <EmptyBoard onCreate={() => setCreating("board")} />}</section>
+          </aside>}
+          <section className="min-w-0 flex-1">{board ? <BoardCanvas key={board.id} board={board} /> : <EmptyBoard onCreate={() => setCreating("board")} />}</section>
         </section>
       )}
       {creating && <CreateModal kind={creating} name={name} setName={setName} onClose={() => setCreating(null)} onSubmit={createItem} />}
-      {settingPassword && <SetPasswordModal supabase={supabase} onClose={() => setSettingPassword(false)} />}
     </main>
   );
 }
@@ -87,9 +86,3 @@ function ProjectsView({ projects, onOpen, onNew }: { projects: Project[]; onOpen
 function EmptyBoard({ onCreate }: { onCreate: () => void }) { return <div className="grid h-full min-h-[calc(100vh-4rem)] place-items-center p-6"><div className="text-center"><LayoutDashboard className="mx-auto mb-4 text-indigo-500" size={35} /><h2 className="text-xl font-semibold">Elige o crea una pizarra</h2><p className="mt-2 max-w-sm text-slate-500">Cada pizarra vive dentro de este proyecto y se guarda automáticamente en la nube.</p><button onClick={onCreate} className="mt-6 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700">Crear pizarra</button></div></div>; }
 
 function CreateModal({ kind, name, setName, onClose, onSubmit }: { kind: "project" | "board"; name: string; setName: (name: string) => void; onClose: () => void; onSubmit: (event: FormEvent<HTMLFormElement>) => void }) { return <div className="fixed inset-0 z-10 grid place-items-center bg-slate-950/25 p-5"><form onSubmit={onSubmit} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl"><h2 className="text-lg font-semibold">Nuevo {kind === "project" ? "proyecto" : "pizarra"}</h2><p className="mt-1 text-sm text-slate-500">Ponle un nombre que te ayude a encontrarlo.</p><input autoFocus value={name} onChange={(event) => setName(event.target.value)} placeholder={kind === "project" ? "Ej. Tesis doctoral" : "Ej. Mapa de conceptos"} className="mt-5 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" /><div className="mt-5 flex justify-end gap-2"><button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100">Cancelar</button><button className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Crear</button></div></form></div>; }
-
-function SetPasswordModal({ supabase, onClose }: { supabase: ReturnType<typeof createClient>; onClose: () => void }) {
-  const [password, setPassword] = useState(""); const [confirmation, setConfirmation] = useState(""); const [error, setError] = useState(""); const [saving, setSaving] = useState(false);
-  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setError(""); if (password.length < 12) return setError("Usa al menos 12 caracteres."); if (password !== confirmation) return setError("Las contraseñas no coinciden."); setSaving(true); const { error: updateError } = await supabase.auth.updateUser({ password }); setSaving(false); if (updateError) setError(updateError.message); else onClose(); }
-  return <div className="fixed inset-0 z-10 grid place-items-center bg-slate-950/25 p-5"><form onSubmit={submit} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl"><h2 className="text-lg font-semibold">Definir contraseña</h2><p className="mt-1 text-sm text-slate-500">Usa una contraseña única de al menos 12 caracteres.</p><input autoFocus type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Nueva contraseña" className="mt-5 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" /><input type="password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder="Repite la contraseña" className="mt-3 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />{error && <p className="mt-3 text-sm text-rose-600">{error}</p>}<div className="mt-5 flex justify-end gap-2"><button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100">Cancelar</button><button disabled={saving} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">{saving ? "Guardando…" : "Guardar contraseña"}</button></div></form></div>;
-}
